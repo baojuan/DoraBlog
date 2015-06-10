@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://baojuan.github.io/DoraBlog/sitemap.xml 
