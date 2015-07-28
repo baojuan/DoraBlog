@@ -4,7 +4,7 @@
   <title><![CDATA[Dora Blog]]></title>
   <link href="http://baojuan.github.io/DoraBlog/atom.xml" rel="self"/>
   <link href="http://baojuan.github.io/DoraBlog/"/>
-  <updated>2015-06-11T12:54:18+08:00</updated>
+  <updated>2015-07-28T12:39:06+08:00</updated>
   <id>http://baojuan.github.io/DoraBlog/</id>
   <author>
     <name><![CDATA[anythingbing]]></name>
@@ -12,6 +12,82 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[开发AppleWatch遇到的那些坑]]></title>
+    <link href="http://baojuan.github.io/DoraBlog/blog/2015/07/28/kai-fa-applewatchyu-dao-de-na-xie-keng/"/>
+    <updated>2015-07-28T12:37:50+08:00</updated>
+    <id>http://baojuan.github.io/DoraBlog/blog/2015/07/28/kai-fa-applewatchyu-dao-de-na-xie-keng</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[开发AppleWatch遇到的那些坑]]></title>
+    <link href="http://baojuan.github.io/DoraBlog/blog/2015/07/23/kai-fa-applewatchyu-dao-de-na-xie-keng/"/>
+    <updated>2015-07-23T19:12:06+08:00</updated>
+    <id>http://baojuan.github.io/DoraBlog/blog/2015/07/23/kai-fa-applewatchyu-dao-de-na-xie-keng</id>
+    <content type="html"><![CDATA[<p>这两天自己写了一个AppleWatch应用，遇到了各种问题，加之网上可用资料不多，着实再一些地方浪费了很多时间，因此在这记录下这些问题，给自己提个醒也帮助其他的同学少踩坑~^-^</p>
+
+<h2>1.watch数据从app读取</h2>
+
+<pre><code>app内有一个方法-(void)application:(UIApplication *)application handleWatchKitExtensionRequest:(NSDictionary *)userInfo reply:(void (^)(NSDictionary *))reply，将需要传的数据写在dictionary中，通过reply(dictionary)将数据给watch，而watch则要通过    [WKInterfaceController openParentApplication:@{your dictionary} reply:^(NSDictionary *replyInfo, NSError *error) {}]读取app内给的数据。openParentApplication传得参数可以是任意dictionary，只要在handlewatchKitExtensionRequest:reply:方法里解析，然后对应传出reply的数据即可。注意任何一种情况都要传reply哦，要不然有可能造成程序崩溃。
+</code></pre>
+
+<h1>下面是一个例子</h1>
+
+<p>//app内AppDelegate.m
+-(void)application:(UIApplication <em>)application handleWatchKitExtensionRequest:(NSDictionary </em>)userInfo reply:(void (^)(NSDictionary <em>))reply{
+    NSString </em>type = [userInfo valueForKey:@&ldquo;type&rdquo;];
+    if ([type isEqualToString:@&ldquo;xxx&rdquo;]) {
+        //do something;
+    NSDictionary <em>dict = @{};
+        reply(dict);
+    }
+    else if ([type isEqualToString:@&ldquo;yyy&rdquo;]) {
+       //do something;
+        NSDictionary </em>dict = @{};
+        reply(dict);
+    }
+    reply(@{});
+}
+//watch中对应的WKInterfaceController
+[WKInterfaceController openParentApplication:@{@&ldquo;type&rdquo;:@&ldquo;settings&rdquo;} reply:^(NSDictionary <em>replyInfo, NSError </em>error) {
+    //replyInfo就是传回来的dictionary  <br/>
+}];</p>
+
+<h1>还有一个悲伤地事实。app内的方法- (void)application:(UIApplication <em>)application handleWatchKitExtensionRequest:(NSDictionary </em>)userInfo reply:(void(^)(NSDictionary *replyInfo))reply 是没办法传自定义的model回来的，所以如果需要传自定义model的话只能通过NSKeyedArchiver和NSKeyedUnarchiver了。</h1>
+
+<h2>2.其实还有另一个办法</h2>
+
+<p>App Groups 可以让app和watch互通数据并且据说效率更高。
+    App Groups 是iOS8引入的一种数据共享方式，如果你的程序不支持iOS8那么就只能用第一种方法。
+    #1.App Groups功能开启#
+    具体开启方法在TAEGETS->Capabilities->App Groups打开开关开启
+    为了开启App Groups功能，首先需要一个支持App Groups的App ID，如果之前没操作过，就需要先进入<a href="https://developer.apple.com%E5%BC%80%E5%90%AF%E5%AF%B9%E5%BA%94%E7%9A%84APP">https://developer.apple.com%E5%BC%80%E5%90%AF%E5%AF%B9%E5%BA%94%E7%9A%84APP</a> ID的APP Groups功能。完成之后就可以“Add a new container”。命名请遵循反序域名规则。
+    #2.Group App之间的通信#
+    保证多个应用使用同一个Groups ID。例如：
+    NSUserDefaults *userdefault = [[NSUserDefaults alloc] initWithSuiteName:@&ldquo;group.xxx.watch&rdquo;];
+    [userdefault setValue:object forKey:@&ldquo;key&rdquo;];
+    [userdefault synchronize];</p>
+
+<h2>3.烦人的tableView</h2>
+
+<pre><code>WKInterfaceTable 就是Watch上的tableView 大致的实现方案跟UITableView一致，要实现两个方法： 
+#[self.table setNumberOfRows:count withRowType:@"MyTableRowController"];# 
+这句话相当于UITableView里面的- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+</code></pre>
+
+<p> Watch中不存在section的概念。rowType就是你在storyboard中设置的TableViewRowController 中得Identity。最最坑爹的是，开始我一直设置的我的Identity是xxxCell，结果界面显示不出任何东西，坑了大半天才发现原来是Identity的名字设置的有问题，大家引以为戒-_-|||
+    #id rowController = [self.table rowControllerAtIndex:i];#
+    这句相当于- (UITableViewCell <em>)tableView:(UITableView </em>)tableView cellForRowAtIndexPath:(NSIndexPath <em>)indexPath相信大家可以看得懂，不用解释了吧~
+    #- (void)table:(WKInterfaceTable </em>)table didSelectRowAtIndex:(NSInteger)rowIndex#
+    这句就是点击table上某行执行的方法。相当于- (void)tableView:(UITableView <em>)tableView didSelectRowAtIndexPath:(NSIndexPath </em>)indexPath
+    最后一点要注意的问题，WKInterfaceTable的每一行继承于NSobject。</p>
+
+<h2>4.待补充&hellip;</h2>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Test Blog]]></title>
