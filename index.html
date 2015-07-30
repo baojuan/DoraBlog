@@ -9,8 +9,7 @@
   <meta name="author" content="anythingbing">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="这两天自己写了一个AppleWatch应用，遇到了各种问题，加之网上可用资料不多，着实再一些地方浪费了很多时间，因此在这记录下这些问题，给自己提个醒也帮助其他的同学少踩坑~^-^ 1.watch数据从app读取 app内有一个方法 -(void)application:(UIApplication &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -72,35 +71,6 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/DoraBlog/blog/2015/07/28/kai-fa-applewatchyu-dao-de-na-xie-keng/">开发AppleWatch遇到的那些坑</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-07-28T12:37:50+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:37 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
       <h1 class="entry-title"><a href="/DoraBlog/blog/2015/07/23/kai-fa-applewatchyu-dao-de-na-xie-keng/">开发AppleWatch遇到的那些坑</a></h1>
     
     
@@ -121,15 +91,25 @@
 
 <h2>1.watch数据从app读取</h2>
 
-<pre><code>app内有一个方法-(void)application:(UIApplication *)application handleWatchKitExtensionRequest:(NSDictionary *)userInfo reply:(void (^)(NSDictionary *))reply，将需要传的数据写在dictionary中，通过reply(dictionary)将数据给watch，而watch则要通过    [WKInterfaceController openParentApplication:@{your dictionary} reply:^(NSDictionary *replyInfo, NSError *error) {}]读取app内给的数据。openParentApplication传得参数可以是任意dictionary，只要在handlewatchKitExtensionRequest:reply:方法里解析，然后对应传出reply的数据即可。注意任何一种情况都要传reply哦，要不然有可能造成程序崩溃。
+<p>app内有一个方法</p>
+
+<pre><code>-(void)application:(UIApplication *)application handleWatchKitExtensionRequest:(NSDictionary *)userInfo reply:(void (^)(NSDictionary *))reply  
 </code></pre>
+
+<p>将需要传的数据写在dictionary中，通过reply(dictionary)将数据给watch，而watch则要通过</p>
+
+<pre><code>    [WKInterfaceController openParentApplication:@{your dictionary} reply:^(NSDictionary *replyInfo, NSError *error) {}]  
+</code></pre>
+
+<p>读取app内给的数据。openParentApplication传得参数可以是任意dictionary，只要在handlewatchKitExtensionRequest:reply:方法里解析，然后对应传出reply的数据即可。注意任何一种情况都要传reply哦，要不然有可能造成程序崩溃。</p>
 
 <h3>下面是一个例子</h3>
 
-<p>//app内AppDelegate.m
--(void)application:(UIApplication <em>)application handleWatchKitExtensionRequest:(NSDictionary </em>)userInfo reply:(void (^)(NSDictionary *))reply{</p>
+<p>//app内AppDelegate.m</p>
 
-<pre><code>NSString *type = [userInfo valueForKey:@"type"];
+<pre><code>-(void)application:(UIApplication *)application handleWatchKitExtensionRequest:(NSDictionary *)userInfo reply:(void (^)(NSDictionary *))reply{
+
+NSString *type = [userInfo valueForKey:@"type"];
 
 if ([type isEqualToString:@"xxx"]) {
 
@@ -152,18 +132,16 @@ reply(dict);
  }
 
  reply(@{});
+ }
 </code></pre>
-
-<p>}</p>
 
 <p>//watch中对应的WKInterfaceController</p>
 
-<p>[WKInterfaceController openParentApplication:@{@&ldquo;type&rdquo;:@&ldquo;settings&rdquo;} reply:^(NSDictionary <em>replyInfo, NSError </em>error) {</p>
+<pre><code>[WKInterfaceController openParentApplication:@{@"type":@"settings"} reply:^(NSDictionary *replyInfo, NSError *error) {
 
-<pre><code>//replyInfo就是传回来的dictionary    
+//replyInfo就是传回来的dictionary    
+}];
 </code></pre>
-
-<p>}];</p>
 
 <h4>还有一个悲伤地事实。app内的方法- (void)application:(UIApplication <em>)application handleWatchKitExtensionRequest:(NSDictionary </em>)userInfo reply:(void(^)(NSDictionary *replyInfo))reply 是没办法传自定义的model回来的，所以如果需要传自定义model的话只能通过NSKeyedArchiver和NSKeyedUnarchiver了。</h4>
 
@@ -171,67 +149,43 @@ reply(dict);
 
 <p>App Groups 可以让app和watch互通数据并且据说效率更高。</p>
 
-<pre><code>App Groups 是iOS8引入的一种数据共享方式，如果你的程序不支持iOS8那么就只能用第一种方法。
-#1.App Groups功能开启#
-具体开启方法在TAEGETS-&gt;Capabilities-&gt;App Groups打开开关开启
+<p>App Groups 是iOS8引入的一种数据共享方式，如果你的程序不支持iOS8那么就只能用第一种方法。
+    #1.App Groups功能开启#
+    具体开启方法在TAEGETS->Capabilities->App Groups打开开关开启</p>
 
-为了开启App Groups功能，首先需要一个支持App Groups的App ID，如果之前没操作过，就需要先进入 https://developer.apple.com 开启对应的APP ID的APP Groups功能。完成之后就可以“Add a new container”。命名请遵循反序域名规则。
+<p>为了开启App Groups功能，首先需要一个支持App Groups的App ID，如果之前没操作过，就需要先进入 <a href="https://developer.apple.com">https://developer.apple.com</a> 开启对应的APP ID的APP Groups功能。完成之后就可以“Add a new container”。命名请遵循反序域名规则。</p>
 
-#2.Group App之间的通信#
+<p>  #2.Group App之间的通信#</p>
 
-保证多个应用使用同一个Groups ID。例如：
+<p>保证多个应用使用同一个Groups ID。例如：</p>
 
-NSUserDefaults *userdefault = [[NSUserDefaults alloc] initWithSuiteName:@"group.xxx.watch"];
+<pre><code>NSUserDefaults *userdefault = [[NSUserDefaults alloc] initWithSuiteName:@"group.xxx.watch"];
 [userdefault setValue:object forKey:@"key"];
 [userdefault synchronize];
 </code></pre>
 
 <h2>3.烦人的tableView</h2>
 
-<pre><code>WKInterfaceTable 就是Watch上的tableView 大致的实现方案跟UITableView一致，要实现两个方法： 
-#[self.table setNumberOfRows:count withRowType:@"MyTableRowController"];# 
-这句话相当于UITableView里面的- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+<p>WKInterfaceTable 就是Watch上的tableView 大致的实现方案跟UITableView一致，要实现两个方法：</p>
+
+<pre><code>[self.table setNumberOfRows:count withRowType:@"MyTableRowController"];
 </code></pre>
 
-<p> Watch中不存在section的概念。rowType就是你在storyboard中设置的TableViewRowController 中得Identity。最最坑爹的是，开始我一直设置的我的Identity是xxxCell，结果界面显示不出任何东西，坑了大半天才发现原来是Identity的名字设置的有问题，大家引以为戒-_-|||
-    #id rowController = [self.table rowControllerAtIndex:i];#
-    这句相当于- (UITableViewCell <em>)tableView:(UITableView </em>)tableView cellForRowAtIndexPath:(NSIndexPath <em>)indexPath相信大家可以看得懂，不用解释了吧~
-    #- (void)table:(WKInterfaceTable </em>)table didSelectRowAtIndex:(NSInteger)rowIndex#
-    这句就是点击table上某行执行的方法。相当于- (void)tableView:(UITableView <em>)tableView didSelectRowAtIndexPath:(NSIndexPath </em>)indexPath
+<p>这句话相当于UITableView里面的- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+ Watch中不存在section的概念。rowType就是你在storyboard中设置的TableViewRowController 中得Identity。最最坑爹的是，开始我一直设置的我的Identity是xxxCell，结果界面显示不出任何东西，坑了大半天才发现原来是Identity的名字设置的有问题，大家引以为戒-_-|||</p>
+
+<pre><code>    id rowController = [self.table rowControllerAtIndex:i];
+</code></pre>
+
+<p>这句相当于- (UITableViewCell <em>)tableView:(UITableView </em>)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath相信大家可以看得懂，不用解释了吧~</p>
+
+<pre><code>- (void)table:(WKInterfaceTable *)table didSelectRowAtIndex:(NSInteger)rowIndex
+</code></pre>
+
+<p>这句就是点击table上某行执行的方法。相当于- (void)tableView:(UITableView <em>)tableView didSelectRowAtIndexPath:(NSIndexPath </em>)indexPath
     最后一点要注意的问题，WKInterfaceTable的每一行继承于NSobject。</p>
 
 <h2>4.待补充&hellip;</h2>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/DoraBlog/blog/2015/06/10/test-blog/">Test Blog</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-06-10T18:58:42+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>6:58 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>好复杂 我只是想看看一个blog怎么玩</h2>
-
-<h1>怎么感觉跟写HTML似的</h1>
 </div>
   
   
@@ -252,15 +206,7 @@ NSUserDefaults *userdefault = [[NSUserDefaults alloc] initWithSuiteName:@"group.
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/DoraBlog/blog/2015/07/28/kai-fa-applewatchyu-dao-de-na-xie-keng/">开发AppleWatch遇到的那些坑</a>
-      </li>
-    
-      <li class="post">
         <a href="/DoraBlog/blog/2015/07/23/kai-fa-applewatchyu-dao-de-na-xie-keng/">开发AppleWatch遇到的那些坑</a>
-      </li>
-    
-      <li class="post">
-        <a href="/DoraBlog/blog/2015/06/10/test-blog/">Test Blog</a>
       </li>
     
   </ul>
