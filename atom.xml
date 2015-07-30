@@ -4,7 +4,7 @@
   <title><![CDATA[Dora Blog]]></title>
   <link href="http://baojuan.github.io/DoraBlog/atom.xml" rel="self"/>
   <link href="http://baojuan.github.io/DoraBlog/"/>
-  <updated>2015-07-30T12:44:15+08:00</updated>
+  <updated>2015-07-30T12:46:20+08:00</updated>
   <id>http://baojuan.github.io/DoraBlog/</id>
   <author>
     <name><![CDATA[anythingbing]]></name>
@@ -80,13 +80,16 @@ reply(dict);
 
 <p>App Groups 可以让app和watch互通数据并且据说效率更高。</p>
 
-<p>App Groups 是iOS8引入的一种数据共享方式，如果你的程序不支持iOS8那么就只能用第一种方法。
-    #1.App Groups功能开启#
-    具体开启方法在TAEGETS->Capabilities->App Groups打开开关开启</p>
+<p>App Groups 是iOS8引入的一种数据共享方式，如果你的程序不支持iOS8那么就只能用第一种方法。</p>
+
+<h4>1.App Groups功能开启</h4>
+
+<pre><code>具体开启方法在TAEGETS-&gt;Capabilities-&gt;App Groups打开开关开启
+</code></pre>
 
 <p>为了开启App Groups功能，首先需要一个支持App Groups的App ID，如果之前没操作过，就需要先进入 <a href="https://developer.apple.com">https://developer.apple.com</a> 开启对应的APP ID的APP Groups功能。完成之后就可以“Add a new container”。命名请遵循反序域名规则。</p>
 
-<p>  #2.Group App之间的通信#</p>
+<h4>2.Group App之间的通信</h4>
 
 <p>保证多个应用使用同一个Groups ID。例如：</p>
 
